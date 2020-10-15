@@ -21,16 +21,16 @@ def index(request):
 
     **Template**
 
-    :template:'index.html'
+    :template:'posts/index.html'
 
     """
-    post_list = Post.objects.all()
+    post_list = Post.objects.select_related('group').all()
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     return render(
         request,
-        'index.html',
+        'posts/index.html',
         {
             'page': page,
             'paginator': paginator,
@@ -54,7 +54,7 @@ def group_posts(request, slug='leo'):
 
     **Template**
 
-    :template:'group.html'
+    :template:'posts/group.html'
 
     """
     group = get_object_or_404(Group, slug=slug)
@@ -64,7 +64,7 @@ def group_posts(request, slug='leo'):
     page = paginator.get_page(page_number)
     return render(
         request,
-        'group.html',
+        'posts/group.html',
         {
             'group': group,
             'page': page,
@@ -88,12 +88,12 @@ def new_post(request):
 
     **Template**
 
-    :template:'new_post.html'
+    :template:'posts/new_post.html'
 
     """
     new_post_form = PostForm(request.POST or None)
     if not new_post_form.is_valid():
-        return render(request, 'new_post.html', {'form': new_post_form})
+        return render(request, 'posts/new_post.html', {'form': new_post_form})
 
     post = new_post_form.save(commit=False)
     post.author = request.user
@@ -115,7 +115,7 @@ def profile(request, username):
 
     **Template**
 
-    :template:'profile.html'
+    :template:'posts/profile.html'
 
     """
     author = get_object_or_404(User, username=username)
@@ -132,7 +132,7 @@ def profile(request, username):
 
     return render(
         request,
-        'profile.html',
+        'posts/profile.html',
         {
             'author': author,
             'page': page,
@@ -156,7 +156,7 @@ def post_view(request, username, post_id):
 
     **Template**
 
-    :template:'post.html'
+    :template:'posts/post.html'
 
     """
     author = get_object_or_404(User, username=username)
@@ -166,7 +166,7 @@ def post_view(request, username, post_id):
     if not comment_form.is_valid():
         return render(
             request,
-            'post.html',
+            'posts/post.html',
             {
                 'post': post,
                 'author': author,
@@ -194,7 +194,7 @@ def add_comment(request, username, post_id):
 
     **Template**
 
-    :template:'post.html'
+    :template:'posts/post.html'
 
     """
     post = get_object_or_404(Post, id=post_id, author__username=username)
@@ -225,7 +225,7 @@ def post_edit(request, username, post_id):
 
     **Template**
 
-    :template:'new_post.html'
+    :template:'posts/new_post.html'
 
     """
     if request.user.username != username:
@@ -237,7 +237,7 @@ def post_edit(request, username, post_id):
     if not form.is_valid():
         return render(
             request,
-            'new_post.html',
+            'posts/new_post.html',
             {'form': form, 'post': post}
         )
 
@@ -275,15 +275,14 @@ def follow_index(request):
     :template:'follow.html'
 
     """
-    followings = Follow.objects.filter(user=request.user)
     post_list = Post.objects.filter(
-        author__following__in=followings)
+        author__following__user=request.user)
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     return render(
         request,
-        'follow.html',
+        'posts/follow.html',
         {
             'page': page,
             'paginator': paginator,
@@ -299,10 +298,8 @@ def profile_follow(request, username):
     Redirect on author's profile page after action.
     """
     author = get_object_or_404(User, username=username)
-    follower = Follow.objects.filter(user=request.user, author=author)
-    if not follower.exists() and author != request.user:
-        Follow.objects.create(user=request.user, author=author)
-
+    if author != request.user:
+        Follow.objects.get_or_create(author=author, user=request.user)
     return redirect(reverse('profile', args=(username,)))
 
 
@@ -315,5 +312,4 @@ def profile_unfollow(request, username):
     """
     author = get_object_or_404(User, username=username)
     Follow.objects.filter(user=request.user, author=author).delete()
-
     return redirect(reverse('profile', args=(username,)))

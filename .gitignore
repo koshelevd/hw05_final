@@ -1,4 +1,5 @@
 .git/*
+*.log
 env/
 venv/
 venvhw05/

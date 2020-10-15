@@ -241,17 +241,18 @@ class TestPostApp(TestCase):
                 response = self.authorized_client.get(self.ready_urls['INDEX'])
                 self.assertEqual(response.status_code, 200)
 
-    def test_following_actions(self):
-        """Test following functionality."""
-        follower = User.objects.create_user(username=str(uuid4()))
-        follower_client = Client()
-        follower_client.force_login(follower)
+    def create_loggedin_user(self):
+        """Create a user, a client, log in the user."""
+        user = User.objects.create_user(username=str(uuid4()))
+        client = Client()
+        client.force_login(user)
+        return user, client
 
-        not_follower = User.objects.create_user(username=str(uuid4()))
-        not_follower_client = Client()
-        not_follower_client.force_login(not_follower)
-
+    def test_user_can_follow(self):
+        """Test if authentificated user can follow an author."""
+        follower, follower_client = self.create_loggedin_user()
         response = follower_client.get(self.ready_urls['FOLLOW'])
+
         with self.subTest('No redirect after follow!'):
             self.assertRedirects(response, self.ready_urls['PROFILE'])
 
@@ -259,7 +260,13 @@ class TestPostApp(TestCase):
         with self.subTest('Following failed!'):
             self.assertEquals(followers_count, 1)
 
+    def test_post_is_in_following_feed(self):
+        """Check if post is in follower's feed."""
+        follower, follower_client = self.create_loggedin_user()
+        not_follower, not_follower_client = self.create_loggedin_user()
+        response = follower_client.get(self.ready_urls['FOLLOW'])
         author_post = self.post_create()
+
         resp_follower = follower_client.get(
             self.ready_urls['FOLLOW_INDEX']).context['paginator'].object_list
         resp_not_follower = not_follower_client.get(
@@ -272,12 +279,18 @@ class TestPostApp(TestCase):
             self.assertNotIn(author_post,
                              resp_not_follower)
 
+    def test_author_unfollow(self):
+        """Test if authentificated user can unfollow an author."""
+        follower, follower_client = self.create_loggedin_user()
+        response = follower_client.get(self.ready_urls['FOLLOW'])
         response = follower_client.get(self.ready_urls['UNFOLLOW'])
+
         with self.subTest('No redirect after unfollow!'):
             self.assertRedirects(response, self.ready_urls['PROFILE'])
         followers_count = Follow.objects.all().count()
         with self.subTest('Unfollowing failed!'):
             self.assertEquals(followers_count, 0)
+
 
     def create_comment(self, client, data):
         """Create a test comment record."""

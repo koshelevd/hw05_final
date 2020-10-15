@@ -5,11 +5,11 @@
   {% load thumbnail %}
   <div class="row">
     <div class="col-md-3 mb-3 mt-1">
-      {% include "author_info.html" with author=author following=following %}
+      {% include "posts/author_info.html" with author=author following=following %}
     </div>
     <div class="col-md-9">
       {% for post in page %}
-        {% include "post_item.html" with post=post %}
+        {% include "posts/post_item.html" with post=post %}
       {% endfor %}
       {% if page.has_other_pages %}
         {% include "includes/paginator.html" with items=page paginator=paginator %}

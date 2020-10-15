@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %} Избранное {% endblock %}
+{% block title %} Последние обновления {% endblock %}
 {% block content %}
   <div class="container">
-    <h1> Избранные записи</h1>
-    {% include "includes/menu.html" with follow=True %}
+    <h1>Последние обновления на сайте</h1>
+    {% include "includes/menu.html" with index=True %}
     {% for post in page %}
-      {% include "post_item.html" with post=post %}
+      {% include "posts/post_item.html" with post=post %}
     {% endfor %}
   </div>
   {% if page.has_other_pages %}
