@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}
+  Запись автора {{ author.get_full_name }} от {{ post.pub_date }}
+{% endblock %}
+{% block header %}
+  Запись автора {{ author.get_full_name }} от {{ post.pub_date }}
+{% endblock %}
+{% block content %}
+  {% load thumbnail %}
+  <div class="row">
+    <div class="col-md-3 mb-3 mt-1">
+      {% include "author_info.html" with author=author following="post" %}
+    </div>
+    <div class="col-md-9">
+      {% include "post_item.html" with post=post %}
+      {% include "comments.html" %}
+    </div>
+  </div>
+{% endblock %}
