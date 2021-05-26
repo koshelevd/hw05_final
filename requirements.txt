@@ -10,7 +10,7 @@ attrs==19.3.0             # via pytest
 certifi==2019.9.11        # via requests
 chardet==3.0.4            # via requests
 colorama==0.4.3
-django-debug-toolbar==2.2
+django-debug-toolbar==2.2.1
 Django==2.2.9
 docutils==0.16
 flake8==3.8.3
